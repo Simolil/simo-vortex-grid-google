@@ -1,0 +1,6 @@
+{
+  "name": "VortexGrid",
+  "description": "A high-performance unblocked games portal with cloaked loading and panic mode.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["Full-stack Games Portal", "Stealth Browser Integration"]
+}
