@@ -1,13 +1,359 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Archive</title>
+    <link rel="icon" type="image/x-icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111111;
+            color: white;
+            overflow-x: hidden;
+        }
 
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .game-card:hover .overlay {
+            opacity: 1;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 100px;
+            grid-auto-flow: dense;
+            gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .bento-grid {
+                grid-template-columns: repeat(6, 1fr);
+                grid-auto-rows: 140px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .bento-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
+        }
+
+        .card-big {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        /* Launcher Styles */
+        #launcher {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: black;
+        }
+    </style>
+</head>
+<body class="selection:bg-white/10">
+
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-50 bg-[#111111]/95 backdrop-blur-md border-b border-white/5 px-4 md:px-8">
+        <div class="max-w-[1800px] mx-auto flex items-center gap-4 lg:gap-8 h-16">
+            <h1 class="text-xl md:text-2xl font-black tracking-tighter italic shrink-0 cursor-pointer" onclick="window.location.reload()">
+                VORTEX
+            </h1>
+
+            <!-- Categories -->
+            <div id="category-bar" class="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-1 min-w-0">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Compact Search -->
+            <div class="relative flex items-center group bg-[#1a1a1a] rounded-full px-2 py-1 border border-white/5 focus-within:border-white/20 transition-all shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-500 group-focus-within:text-white transition-colors">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input 
+                    type="text" 
+                    id="search-input"
+                    placeholder="Search"
+                    class="w-12 md:w-16 focus:w-20 md:focus:w-32 bg-transparent border-none outline-none text-[9px] uppercase font-black tracking-wider ml-1.5 placeholder:text-neutral-700 transition-all text-white"
+                >
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-[1800px] mx-auto p-4 md:p-8">
+        <div id="grid" class="bento-grid">
+            <!-- Injected via JS -->
+        </div>
+    </main>
+
+    <!-- Hidden Launcher Frame -->
+    <div id="launcher">
+        <iframe id="game-frame" src="" class="w-full h-full border-none"></iframe>
+        <button onclick="closeGame()" class="absolute top-4 right-4 bg-white text-black font-black text-xs px-4 py-2 rounded-full hover:bg-neutral-200 transition-all shadow-xl">EXIT</button>
+    </div>
+
+    <script>
+        const games = [
+          { "id": "1", "title": "Retro Bowl", "thumbnail": "https://images.unsplash.com/photo-1552667466-07770ae110d0?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/retro-bowl/", "category": "Retro" },
+          { "id": "2", "title": "Subway Surfers", "thumbnail": "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/subway-surfers/", "category": "Action" },
+          { "id": "3", "title": "Tunnel Rush", "thumbnail": "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/tunnel-rush/", "category": "Skill" },
+          { "id": "4", "title": "Basketball Stars", "thumbnail": "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/basketball-stars/", "category": "Sports" },
+          { "id": "5", "title": "Temple Run 2", "thumbnail": "https://images.unsplash.com/photo-1533230392652-320e8b7f8373?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/temple-run-2/", "category": "Action" },
+          { "id": "6", "title": "Crossy Road", "thumbnail": "https://images.unsplash.com/photo-1542332213-31f87348057f?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/crossy-road/", "category": "Casual" },
+          { "id": "7", "title": "EvoWorld.io", "thumbnail": "https://images.unsplash.com/photo-1532009324734-24a7a5b23c0d?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/evoworld-io/", "category": "IO" },
+          { "id": "8", "title": "Drive Mad", "thumbnail": "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/drive-mad/", "category": "Racing" },
+          { "id": "9", "title": "Level Devil", "thumbnail": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/level-devil/", "category": "Skill" },
+          { "id": "10", "title": "Vector", "thumbnail": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/vector/", "category": "Action" },
+          { "id": "11", "title": "Moto X3M", "thumbnail": "https://images.unsplash.com/photo-1558981403-c5f91cbba527?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/moto-x3m/", "category": "Racing" },
+          { "id": "12", "title": "Stickman Hook", "thumbnail": "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/stickman-hook/", "category": "Casual" },
+          { "id": "13", "title": "G-Switch 3", "thumbnail": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/g-switch-3/", "category": "Action" },
+          { "id": "14", "title": "Vex 7", "thumbnail": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/vex-7/", "category": "Action" },
+          { "id": "15", "title": "Mad GunZ", "thumbnail": "https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/mad-gunz/", "category": "Action" },
+          { "id": "16", "title": "Monkey Mart", "thumbnail": "https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/monkey-mart/", "category": "Casual" },
+          { "id": "17", "title": "Tribals.io", "thumbnail": "https://images.unsplash.com/photo-1464333086628-25ca7603b4bd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/tribals-io/", "category": "IO" },
+          { "id": "18", "title": "Shell Shockers", "thumbnail": "https://images.unsplash.com/photo-1533613220915-609f661a6ce1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/shell-shockers/", "category": "Action" },
+          { "id": "19", "title": "Combat Online", "thumbnail": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/combat-online/", "category": "Action" },
+          { "id": "20", "title": "Rocket Soccer", "thumbnail": "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/rocket-soccer-derby/", "category": "Sports" },
+          { "id": "21", "title": "Narrow.one", "thumbnail": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/narrow-one/", "category": "Action" },
+          { "id": "22", "title": "Gold Digger FR", "thumbnail": "https://images.unsplash.com/photo-1544033527-b192daee1f5b?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/gold-digger-fr/", "category": "Casual" },
+          { "id": "23", "title": "Smash Karts", "thumbnail": "https://images.unsplash.com/photo-1566694271452-94f7943f6562?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/smash-karts/", "category": "IO" },
+          { "id": "24", "title": "YoHoHo.io", "thumbnail": "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/yohoho-io/", "category": "IO" },
+          { "id": "25", "title": "Bullet Force", "thumbnail": "https://images.unsplash.com/photo-1560253023-3ee71f1f9bb0?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/bullet-force/", "category": "Action" },
+          { "id": "26", "title": "Stick Merge", "thumbnail": "https://images.unsplash.com/photo-1580234811497-9df7fd2f357e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/stick-merge/", "category": "Casual" },
+          { "id": "27", "title": "Sniper Sniper", "thumbnail": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/sniper-sniper/", "category": "Action" },
+          { "id": "28", "title": "Raft Wars", "thumbnail": "https://images.unsplash.com/photo-1536411396596-afed9fa3c1b2?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/raft-wars-multiplayer/", "category": "Action" },
+          { "id": "29", "title": "Big Shot Boxing", "thumbnail": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/big-shot-boxing/", "category": "Sports" },
+          { "id": "30", "title": "Golf Party", "thumbnail": "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/golf-party/", "category": "Sports" },
+          { "id": "31", "title": "Football Legends", "thumbnail": "https://images.unsplash.com/photo-1552667466-07770ae110d0?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/football-legends-2021/", "category": "Sports" },
+          { "id": "32", "title": "Tennis Masters", "thumbnail": "https://images.unsplash.com/photo-1595435063059-3a6f1dce2a51?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/tennis-masters/", "category": "Sports" },
+          { "id": "33", "title": "Boxing Stars", "thumbnail": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/boxing-stars/", "category": "Sports" },
+          { "id": "34", "title": "Sling Drift", "thumbnail": "https://images.unsplash.com/photo-1549497538-301228c966ca?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/sling-drift/", "category": "Racing" },
+          { "id": "35", "title": "Parking Fury", "thumbnail": "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/parking-fury-3d-night-thief/", "category": "Racing" },
+          { "id": "36", "title": "Speed King", "thumbnail": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/speed-king/", "category": "Racing" },
+          { "id": "37", "title": "EvoWorld.io", "thumbnail": "https://images.unsplash.com/photo-1472457897821-70d3819a0e24?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/evoworld-io/", "category": "IO" },
+          { "id": "38", "title": "Wormaze", "thumbnail": "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/wormaze/", "category": "Casual" },
+          { "id": "39", "title": "Rowdy City Wrestling", "thumbnail": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/rowdy-city-wrestling/", "category": "Sports" },
+          { "id": "40", "title": "Wrestle Jump", "thumbnail": "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/wrestle-jump/", "category": "Sports" },
+          { "id": "41", "title": "Paper.io 2", "thumbnail": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/paper-io-2/", "category": "IO" },
+          { "id": "42", "title": "Hole.io", "thumbnail": "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/hole-io/", "category": "IO" },
+          { "id": "43", "title": "Slither.io", "thumbnail": "https://images.unsplash.com/photo-1454165833767-027eeef1596e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/slither-io/", "category": "IO" },
+          { "id": "44", "title": "Agar.io", "thumbnail": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/agar-io/", "category": "IO" },
+          { "id": "45", "title": "Diep.io", "thumbnail": "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/diep-io/", "category": "IO" },
+          { "id": "46", "title": "Wings.io", "thumbnail": "https://images.unsplash.com/photo-1490604586845-6f9ecf0a2180?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/wings-io/", "category": "IO" },
+          { "id": "47", "title": "Warbot.io", "thumbnail": "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/warbot-io/", "category": "IO" },
+          { "id": "48", "title": "Superhex.io", "thumbnail": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/superhex-io/", "category": "IO" },
+          { "id": "49", "title": "Snowball.io", "thumbnail": "https://images.unsplash.com/photo-1517406708673-424ccbb6ddf7?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/snowball-io/", "category": "IO" },
+          { "id": "50", "title": "Mope.io", "thumbnail": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/mope-io/", "category": "IO" },
+          { "id": "51", "title": "Bouncy Basketball", "thumbnail": "https://images.unsplash.com/photo-1519766304817-4f37bda74a27?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/bouncy-basketball/", "category": "Sports" },
+          { "id": "52", "title": "Street Ball Jam", "thumbnail": "https://images.unsplash.com/photo-1533928298208-27ff66555d8d?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/street-ball-jam/", "category": "Sports" },
+          { "id": "53", "title": "Super Dunk", "thumbnail": "https://images.unsplash.com/photo-1504450758481-7338ef7524a7?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/super-dunk-line-2/", "category": "Sports" },
+          { "id": "54", "title": "Basket Swooshes", "thumbnail": "https://images.unsplash.com/photo-1505666287802-931dc8394b5f?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/basket-swooshes/", "category": "Sports" },
+          { "id": "55", "title": "Basket Monsterz", "thumbnail": "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/basket-monsterz/", "category": "Sports" },
+          { "id": "56", "title": "Basketball Stars", "thumbnail": "https://images.unsplash.com/photo-1519861155730-0b5fbf0dd889?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/basketball-stars/", "category": "Sports" },
+          { "id": "57", "title": "Dunk Perfect", "thumbnail": "https://images.unsplash.com/photo-1544919934-8c08479e37cc?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/dunk-perfect/", "category": "Sports" },
+          { "id": "58", "title": "Line Dunk", "thumbnail": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/line-dunk/", "category": "Sports" },
+          { "id": "59", "title": "Dunk Shot", "thumbnail": "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/dunk-shot/", "category": "Sports" },
+          { "id": "60", "title": "Dunkers", "thumbnail": "https://images.unsplash.com/photo-1510563800743-aed236490d08?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/dunkers-2/", "category": "Sports" },
+          { "id": "61", "title": "Moto X3M 5", "thumbnail": "https://images.unsplash.com/photo-1558981448-cfa6f14a4b25?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/moto-x3m-pool-party/", "category": "Racing" },
+          { "id": "62", "title": "Moto X3M 4", "thumbnail": "https://images.unsplash.com/photo-1558981448-cfa6f14a4b25?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/moto-x3m-winter/", "category": "Racing" },
+          { "id": "63", "title": "Moto X3M 6", "thumbnail": "https://images.unsplash.com/photo-1471444644026-69a4ea498877?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/moto-x3m-spooky-land/", "category": "Racing" },
+          { "id": "64", "title": "Super Bike", "thumbnail": "https://images.unsplash.com/photo-1558981403-c5f91cbba527?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/super-bike-the-champion/", "category": "Racing" },
+          { "id": "65", "title": "Highway Rider", "thumbnail": "https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/highway-rider-extreme/", "category": "Racing" },
+          { "id": "66", "title": "Stunt Car", "thumbnail": "https://images.unsplash.com/photo-1596756209425-423521b44ec9?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/stunt-car-challenge-3/", "category": "Racing" },
+          { "id": "67", "title": "Burnin' Rubber", "thumbnail": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/burnin-rubber-5-xs/", "category": "Racing" },
+          { "id": "68", "title": "GP Moto", "thumbnail": "https://images.unsplash.com/photo-1558981285-6f0c94958bb6?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/gp-moto-racing-2/", "category": "Racing" },
+          { "id": "69", "title": "Car Rush", "thumbnail": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/car-rush/", "category": "Racing" },
+          { "id": "70", "title": "Fast Driver", "thumbnail": "https://images.unsplash.com/photo-1549399542-7e3f8b79c3d9?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/midnight-drive/", "category": "Racing" },
+          { "id": "71", "title": "Temple Run", "thumbnail": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/temple-run-2-jungle-fall/", "category": "Action" },
+          { "id": "72", "title": "Bacon May Die", "thumbnail": "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/bacon-may-die/", "category": "Action" },
+          { "id": "73", "title": "Getaway Shoot", "thumbnail": "https://images.unsplash.com/photo-1533613220915-609f661a6ce1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/getaway-shootout/", "category": "Action" },
+          { "id": "74", "title": "Rooftop Snipers", "thumbnail": "https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/rooftop-snipers/", "category": "Action" },
+          { "id": "75", "title": "Stick Fighter", "thumbnail": "https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/stick-fighter/", "category": "Action" },
+          { "id": "76", "title": "Iron Snout", "thumbnail": "https://images.unsplash.com/photo-1464333086628-25ca7603b4bd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/iron-snout/", "category": "Action" },
+          { "id": "77", "title": "Combat Reload", "thumbnail": "https://images.unsplash.com/photo-1533613220915-609f661a6ce1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/combat-reloaded/", "category": "Action" },
+          { "id": "78", "title": "Combat Online", "thumbnail": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/combat-online/", "category": "Action" },
+          { "id": "79", "title": "Subway Surfers", "thumbnail": "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/subway-surfers-san-francisco/", "category": "Action" },
+          { "id": "80", "title": "Subway Surfers", "thumbnail": "https://images.unsplash.com/photo-1566694271452-94f7943f6562?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/subway-surfers-new-york/", "category": "Action" },
+          { "id": "81", "title": "Slope", "thumbnail": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/slope/", "category": "Skill" },
+          { "id": "82", "title": "Tunnel Rush", "thumbnail": "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/tunnel-rush-2/", "category": "Skill" },
+          { "id": "83", "title": "Geometry Dash", "thumbnail": "https://images.unsplash.com/photo-1560253023-3ee71f1f9bb0?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/geometry-dash/", "category": "Skill" },
+          { "id": "84", "title": "Color Switch", "thumbnail": "https://images.unsplash.com/photo-1536411396596-afed9fa3c1b2?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/color-switch-2/", "category": "Skill" },
+          { "id": "85", "title": "Happy Wheels", "thumbnail": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/happy-wheels/", "category": "Skill" },
+          { "id": "86", "title": "Run 3", "thumbnail": "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/run-3/", "category": "Skill" },
+          { "id": "87", "title": "Fireboy Watergirl", "thumbnail": "https://images.unsplash.com/photo-1566694271452-94f7943f6562?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/fireboy-and-watergirl-forest-temple/", "category": "Skill" },
+          { "id": "88", "title": "Fireboy Watergirl 2", "thumbnail": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/fireboy-and-watergirl-light-temple/", "category": "Skill" },
+          { "id": "89", "title": "Fireboy Watergirl 3", "thumbnail": "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/fireboy-and-watergirl-ice-temple/", "category": "Skill" },
+          { "id": "90", "title": "Fireboy Watergirl 4", "thumbnail": "https://images.unsplash.com/photo-1560253023-3ee71f1f9bb0?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/fireboy-and-watergirl-crystal-temple/", "category": "Skill" },
+          { "id": "91", "title": "Fireboy Watergirl 5", "thumbnail": "https://images.unsplash.com/photo-1536411396596-afed9fa3c1b2?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/fireboy-and-watergirl-5-elements/", "category": "Skill" },
+          { "id": "92", "title": "Fireboy Watergirl 6", "thumbnail": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/fireboy-and-watergirl-6-fairy-tales/", "category": "Skill" },
+          { "id": "93", "title": "Pac-man", "thumbnail": "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/pac-man/", "category": "Retro" },
+          { "id": "94", "title": "Galaga", "thumbnail": "https://images.unsplash.com/photo-1566694271452-94f7943f6562?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/galaga/", "category": "Retro" },
+          { "id": "95", "title": "Space Invaders", "thumbnail": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/space-invaders/", "category": "Retro" },
+          { "id": "96", "title": "Donkey Kong", "thumbnail": "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/donkey-kong/", "category": "Retro" },
+          { "id": "97", "title": "Super Mario", "thumbnail": "https://images.unsplash.com/photo-1560253023-3ee71f1f9bb0?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/super-mario/", "category": "Retro" },
+          { "id": "98", "title": "Sonic", "thumbnail": "https://images.unsplash.com/photo-1536411396596-afed9fa3c1b2?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/sonic-the-hedgehog/", "category": "Retro" },
+          { "id": "99", "title": "Street Fighter", "thumbnail": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/street-fighter-2/", "category": "Retro" },
+          { "id": "100", "title": "Mortal Kombat", "thumbnail": "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400", "source": "https://gameads.poki.com/poki/mortal-kombat/", "category": "Retro" }
+        ];
+
+        const categories = [
+          { name: 'All', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01"/><path d="M10 12h.01"/><path d="M15 11l1 1 1-1"/><path d="M15 13l1-1 1 1"/></svg>' },
+          { name: 'Action', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' },
+          { name: 'Racing', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>' },
+          { name: 'Skill', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>' },
+          { name: 'Sports', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.7 14.7 0 0 0 0 20"/><path d="M2 12a14.7 14.7 0 0 0 20 0"/></svg>' },
+          { name: 'IO', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12a14.5 14.5 0 0 0 20 0"/><path d="M12 2a14.5 14.5 0 0 1 0 20"/><path d="M2 12a14.5 14.5 0 0 1 20 0"/></svg>' },
+          { name: 'Casual', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>' },
+          { name: 'Retro', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 11c0-2.209 1.791-4 4-4s4 1.791 4 4v7c0 2.209-1.791 4-4 4s-4-1.791-4-4v-7z"/><path d="M18 11c0-2.209 1.791-4 4-4s4 1.791 4 4v7c0 2.209-1.791 4-4 4s-4-1.791-4-4v-7z"/><path d="M12 7V3"/><path d="M8 3h8"/></svg>' },
+        ];
+
+        let selectedCategory = 'All';
+        let searchQuery = '';
+
+        window.onload = () => {
+            renderCategories();
+            renderGrid();
+            setupSearch();
+            setupStealth();
+        };
+
+        function renderCategories() {
+            const container = document.getElementById('category-bar');
+            container.innerHTML = categories.map(cat => `
+                <button 
+                    onclick="setCategory('${cat.name}')"
+                    class="category-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all whitespace-nowrap border shrink-0 ${selectedCategory === cat.name ? 'active bg-white text-black border-white' : 'bg-[#1a1a1a] text-neutral-400 border-white/5 hover:border-white/20'}"
+                    data-name="${cat.name}"
+                >
+                    <span class="shrink-0 ${selectedCategory === cat.name ? 'text-black' : 'text-neutral-500'}">${cat.icon}</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider">${cat.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function setCategory(name) {
+            selectedCategory = name;
+            renderCategories();
+            renderGrid();
+        }
+
+        function setupSearch() {
+            const input = document.getElementById('search-input');
+            input.oninput = (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderGrid();
+            };
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('grid');
+            const filtered = games.filter(g => {
+                const matchesCat = selectedCategory === 'All' || g.category === selectedCategory;
+                const matchesSearch = g.title.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            container.innerHTML = filtered.map((game, index) => {
+                // Bento Pattern: Row 1 (Start), Row 2 (Middle), Row 3 (End)
+                // Assuming 10-item chunks (roughly one visual row area)
+                const patternIndex = Math.floor(index / 12);
+                const posInPattern = index % 12;
+                const rowType = patternIndex % 3;
+                
+                let sizeClass = '';
+                if (rowType === 0 && posInPattern === 0) sizeClass = 'card-big';
+                if (rowType === 1 && posInPattern === 5) sizeClass = 'card-big';
+                if (rowType === 2 && posInPattern === 11) sizeClass = 'card-big';
+
+                return `
+                    <div 
+                        onclick="launchGame('${game.source}')"
+                        class="game-card relative group rounded-xl overflow-hidden cursor-pointer bg-[#1a1a1a] transition-all hover:scale-[1.02] active:scale-95 ${sizeClass}"
+                    >
+                        <img 
+                            src="${game.thumbnail}" 
+                            class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" 
+                            alt="${game.title}"
+                            referrerpolicy="no-referrer"
+                        >
+                        <div class="overlay opacity-0 group-hover:opacity-100 absolute inset-0 bg-black/60 flex flex-col justify-end p-3 transition-opacity">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-white italic truncate">${game.title}</span>
+                            <span class="text-[8px] font-bold text-neutral-400 tracking-tighter uppercase">${game.category}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setupStealth() {
+            // Panic Key
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    window.location.href = 'https://docs.google.com';
+                }
+            });
+
+            // Tab Cloaking
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    document.title = 'My Drive - Google Drive';
+                    // Favicon is already set in HTML
+                } else {
+                    document.title = 'Vortex Archive';
+                }
+            });
+        }
+
+        function launchGame(url) {
+            const frame = document.getElementById('game-frame');
+            const launcher = document.getElementById('launcher');
+            
+            // about:blank implementation
+            const win = window.open('about:blank', '_blank');
+            if (win) {
+                win.document.body.style.margin = '0';
+                win.document.body.style.height = '100vh';
+                const iframe = win.document.createElement('iframe');
+                iframe.style.border = 'none';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.src = url;
+                win.document.body.appendChild(iframe);
+                
+                // Add tab mask to the new window too
+                win.document.title = 'Google Docs';
+                const link = win.document.createElement('link');
+                link.rel = 'icon';
+                link.href = 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico';
+                win.document.head.appendChild(link);
+            } else {
+                // Fallback if popup blocked
+                frame.src = url;
+                launcher.style.display = 'block';
+            }
+        }
+
+        function closeGame() {
+            const frame = document.getElementById('game-frame');
+            const launcher = document.getElementById('launcher');
+            frame.src = '';
+            launcher.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
