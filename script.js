@@ -7,19 +7,22 @@ const GAME_ASSETS = [
     'https://static.wikia.nocookie.net/zelda/images/d/df/Triforce_ALBW.png',
     'https://static.wikia.nocookie.net/v__/images/a/a2/Companion_Cube-Portal.png',
     'https://static.wikia.nocookie.net/mario/images/9/92/Super_Mushroom_-_Mario_Party_10.png',
-    'https://static.wikia.nocookie.net/space-invaders/images/0/0e/Invader_Alien.png'
+    'https://static.wikia.nocookie.net/space-invaders/images/0/0e/Invader_Alien.png',
+    'https://static.wikia.nocookie.net/pikmin/images/4/4d/Pikmin_1_Red_Pikmin.png'
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
     generateBgSymbols();
     
-    // Path detection
-    const path = window.location.pathname;
-    if (path.endsWith('index.html') || path === '/' || path.endsWith('vortex-archive/')) {
+    // Path detection - handle Netlify and various URL structures
+    const path = window.location.pathname.toLowerCase();
+    const isHome = path === '/' || path.endsWith('index.html') || path === '' || path.endsWith('/');
+
+    if (isHome) {
         initHome();
-    } else if (path.endsWith('archive.html')) {
+    } else if (path.includes('archive.html')) {
         initArchive();
-    } else if (path.endsWith('game.html')) {
+    } else if (path.includes('game.html')) {
         initGame();
     }
 });
@@ -28,19 +31,20 @@ function generateBgSymbols() {
     const bg = document.getElementById('bg-symbols');
     if (!bg) return;
     
-    const iconCount = window.innerWidth < 768 ? 15 : 30; // Fewer but bigger
+    // More icons for full coverage
+    const iconCount = window.innerWidth < 768 ? 20 : 40; 
     
     for (let i = 0; i < iconCount; i++) {
         const img = document.createElement('img');
         img.src = GAME_ASSETS[Math.floor(Math.random() * GAME_ASSETS.length)];
         img.referrerPolicy = 'no-referrer';
         
-        // Random positioning
+        // Random positioning across entire viewport
         const top = Math.random() * 100;
         const left = Math.random() * 100;
-        const size = Math.random() * (140 - 60) + 60; // 60px to 140px (BIGGER)
+        const size = Math.random() * (160 - 70) + 70; // 70px to 160px (MUCH BIGGER)
         const rotation = Math.random() * 360;
-        const opacity = Math.random() * (0.08 - 0.03) + 0.03; 
+        const opacity = Math.random() * (0.07 - 0.02) + 0.02; 
         
         img.style.position = 'absolute';
         img.style.top = `${top}%`;
@@ -50,10 +54,10 @@ function generateBgSymbols() {
         img.style.transform = `rotate(${rotation}deg)`;
         img.style.opacity = opacity;
         img.style.pointerEvents = 'none';
-        img.style.filter = 'drop-shadow(0 0 15px rgba(255,120,60,0.1)) contrast(0.8)';
+        img.style.filter = 'drop-shadow(0 0 20px rgba(255,255,255,0.05)) grayscale(0.5)';
         
-        // Add space-swim animation
-        const duration = 25 + Math.random() * 45; // Slower, more atmospheric
+        // Add slow space-swim animation
+        const duration = 40 + Math.random() * 50; // Much slower: 40s to 90s
         img.style.animation = `spaceSwim ${duration}s ease-in-out infinite`;
         img.style.animationDelay = `-${Math.random() * duration}s`;
         

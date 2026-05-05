@@ -49,9 +49,9 @@ a {
 
 @keyframes spaceSwim {
     0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    25% { transform: translate(15vw, 15vh) rotate(90deg) scale(1.1); }
-    50% { transform: translate(-10vw, 30vh) rotate(180deg) scale(1); }
-    75% { transform: translate(-20vw, 10vh) rotate(270deg) scale(0.9); }
+    25% { transform: translate(30vw, 20vh) rotate(90deg) scale(1.2); }
+    50% { transform: translate(-15vw, 40vh) rotate(180deg) scale(1); }
+    75% { transform: translate(-30vw, 15vh) rotate(270deg) scale(0.8); }
     100% { transform: translate(0, 0) rotate(360deg) scale(1); }
 }
 
