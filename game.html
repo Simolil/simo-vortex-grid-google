@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curated Entry | Vortex</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="bg-symbols"></div>
+
+    <nav>
+        <div class="logo"><a href="index.html">VORTEX ARCHIVE</a></div>
+        <div class="nav-links">
+            <a href="archive.html">Archive</a>
+            <a href="index.html">Oracle</a>
+            <a href="#">New</a>
+            <a href="#">About</a>
+        </div>
+    </nav>
+
+    <main class="game-layout">
+        <a href="archive.html" class="back-link">← Back to Archive</a>
+
+        <div class="game-header">
+            <div id="g-session" class="session-badge"></div>
+            <h1 id="g-title" style="font-size: 3.5rem; margin-bottom: 1rem;"></h1>
+            <p id="g-vibes" style="font-size: 1.2rem; color: var(--accent); font-style: italic;"></p>
+            <div id="g-moods" style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; text-transform: uppercase; letter-spacing: 2px;"></div>
+        </div>
+
+        <div class="content-block">
+            <h2>The Story</h2>
+            <div id="g-story" style="font-family: inherit;"></div>
+        </div>
+
+        <div class="content-block">
+            <h2>Why it's in the Archive</h2>
+            <p id="g-why"></p>
+        </div>
+
+        <div class="content-block">
+            <h2>How to Play</h2>
+            <ul id="g-how" style="list-style-type: '→ '; padding-left: 1.5rem;"></ul>
+        </div>
+
+        <div class="iframe-container">
+            <iframe id="g-iframe" allowfullscreen></iframe>
+        </div>
+
+        <a id="g-steam" target="_blank" class="steam-btn">Love this game? Get the full version on Steam →</a>
+
+        <section style="padding: 4rem 0 0;">
+            <div class="section-head">
+                <h2>Similar Frequencies</h2>
+            </div>
+            <div class="game-grid" id="related-grid"></div>
+        </section>
+
+        <div id="g-tags" style="font-size: 0.6rem; margin-top: 4rem; opacity: 0.3; text-align: center;"></div>
+    </main>
+
+    <footer>
+        <p class="curator-note">A CURATOR, NOT A STORE</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
